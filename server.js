@@ -25,3 +25,7 @@ app.use('/api/notes', notesRoutes)
 app.listen(port, () => {
     console.group('server running on the port')
 })
+
+app.use('/', (req, res) => {
+    res.send('<h1>Welcome to Pocket-notes')
+})
