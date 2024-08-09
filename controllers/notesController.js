@@ -1,4 +1,4 @@
-const Note = require('../models/Notes');
+const Note = require('../models/Notes');  // Make sure the model file name matches
 const Group = require('../models/Group');
 
 // Add a new note
@@ -47,6 +47,20 @@ const getNotes = async (req, res) => {
     }
 };
 
+// Get all notes for a specific group
+const getNotesByGroup = async (req, res) => {
+    try {
+        const { groupId } = req.params;  // Extract groupId from URL parameters
+
+        // Fetch notes associated with the group
+        const notes = await Note.find({ groupId }).sort({ createdAt: -1 });
+        res.status(200).json(notes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching notes for the group' });
+    }
+};
+
 // Delete a specific note
 const deleteNote = async (req, res) => {
     try {
@@ -60,6 +74,15 @@ const deleteNote = async (req, res) => {
             return res.status(404).json({ message: 'Note not found or not authorized' });
         }
 
+        // Remove note from group if applicable
+        if (deletedNote.groupId) {
+            const group = await Group.findById(deletedNote.groupId);
+            if (group) {
+                group.notes.pull(noteId);
+                await group.save();
+            }
+        }
+
         res.status(200).json({ message: 'Note deleted successfully', deletedNote });
     } catch (error) {
         console.error(error);
@@ -70,5 +93,6 @@ const deleteNote = async (req, res) => {
 module.exports = {
     addNote,
     getNotes,
+    getNotesByGroup,
     deleteNote
 };
